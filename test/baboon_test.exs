@@ -7,7 +7,11 @@ defmodule BaboonTest do
   doctest Baboon
 
   property "apply transaction for every datom" do
-    check all(datoms <- list_of(datom_generator()), transaction <- transaction_generator()) do
+    check all(
+            entity <- integer(1..100),
+            datoms <- list_of(datom_generator(entity)),
+            transaction <- transaction_generator()
+          ) do
       assert datoms
              |> Baboon.with_transaction(transaction)
              |> Enum.all?(fn %{transaction: tx} -> tx == transaction end)
@@ -15,30 +19,32 @@ defmodule BaboonTest do
   end
 
   property "should hidrate with latest updates" do
-    check all(datoms <- list_of(datom_generator())) do
-      datoms |> Baboon.hidrate()
+    check all(
+            entity <- integer(1..100),
+            datoms <- list_of(datom_generator(entity))
+          ) do
+      datoms |> Baboon.datoms_to_entity() |> IO.inspect()
       # hidrate should return as many unique entities generated
       # hidrate should return the last properties of a entity if promisse is assert
       # hidrate should remove the property if last promisse is retreated
     end
   end
 
-  defp datom_generator do
+  defp datom_generator(entity) do
     gen all(
-          entity <- integer(0..50),
-          property <-
+          attribute <-
             member_of([
-              [:person, :id],
-              [:person, :name],
-              [:person, :age],
-              [:person, :created_at],
-              [:person, :updated_at],
-              [:person, :member_since]
+              :person_id,
+              :person_name,
+              :person_age,
+              :person_created_at,
+              :person_updated_at,
+              :person_member_since
             ]),
           value <- string(:ascii),
           promisse <- member_of([:assert, :retract])
         ) do
-      %Datom{entity: entity, property: property, value: value, promisse: promisse}
+      %Datom{entity: entity, attribute: attribute, value: value, promisse: promisse}
     end
   end
 

@@ -4,13 +4,19 @@ defmodule Baboon do
   end
 
   defmodule Datom do
-    defstruct [:entity, :property, :value, :transaction, :promisse]
+    defstruct [:entity, :attribute, :value, :transaction, :promisse]
   end
 
   def with_transaction(datoms, transaction),
     do: datoms |> Enum.map(&%{&1 | transaction: transaction})
 
-  def hidrate(datoms) do
-    datoms |> Enum.sort()
+  def datoms_to_entity(same_entity_datoms) do
+    same_entity_datoms
+    |> Enum.sort()
+    |> Enum.reduce(%{}, fn %{attribute: a, value: v, entity: e}, entity ->
+      entity
+      |> Map.put(a, v)
+      |> Map.put(:entity, e)
+    end)
   end
 end
