@@ -6,7 +6,7 @@ defmodule BaboonTest do
 
   doctest Baboon
 
-  property "apply transaction for every datom" do
+  property "should apply transaction for every datom" do
     check all(
             entity <- integer(1..100),
             datoms <- list_of(datom_generator(entity)),
@@ -18,12 +18,20 @@ defmodule BaboonTest do
     end
   end
 
-  property "should hidrate with latest updates" do
+  property "should convert datoms to entity" do
     check all(
             entity <- integer(1..100),
             datoms <- list_of(datom_generator(entity))
           ) do
-      datoms |> Baboon.datoms_to_entity() |> IO.inspect()
+      ## datoms |> IO.inspect()
+      datoms |> Baboon.datoms_to_entity()
+
+      datoms
+      |> Enum.sort_by(fn %{transaction: %{seq: tx}} -> tx end)
+      |> Enum.reduce(%{}, fn %{attribute: key} = datom, acc -> Map.put(acc, key, datom) end)
+      |> Map.values()
+      |> IO.inspect()
+
       # hidrate should return as many unique entities generated
       # hidrate should return the last properties of a entity if promisse is assert
       # hidrate should remove the property if last promisse is retreated
@@ -42,20 +50,27 @@ defmodule BaboonTest do
               :person_member_since
             ]),
           value <- string(:ascii),
-          promisse <- member_of([:assert, :retract])
+          promisse <- member_of([:assert, :retract]),
+          transaction <- transaction_generator(1..5)
         ) do
-      %Datom{entity: entity, attribute: attribute, value: value, promisse: promisse}
+      %Datom{
+        entity: entity,
+        attribute: attribute,
+        value: value,
+        transaction: transaction,
+        promisse: promisse
+      }
     end
   end
 
-  defp transaction_generator do
+  defp transaction_generator(size \\ 0..10_000_000) do
     gen(
       all(
-        id <- integer(0..10_000_000),
+        seq <- integer(size),
         unix_timestamp <- integer(100_000_000..10_000_000_000)
       ) do
         timestamp = unix_timestamp |> DateTime.from_unix()
-        %Transacation{transaction: id, timestamp: timestamp}
+        %Transacation{seq: seq, timestamp: timestamp}
       end
     )
   end

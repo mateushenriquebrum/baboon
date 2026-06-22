@@ -1,6 +1,6 @@
 defmodule Baboon do
   defmodule Transacation do
-    defstruct [:transaction, :timestamp]
+    defstruct [:seq, :timestamp]
   end
 
   defmodule Datom do
@@ -12,7 +12,7 @@ defmodule Baboon do
 
   def datoms_to_entity(same_entity_datoms) do
     same_entity_datoms
-    |> Enum.sort()
+    |> Enum.sort_by(fn %{transaction: %{seq: tx}} -> tx end)
     |> Enum.reduce(%{}, fn %{attribute: a, value: v, entity: e}, entity ->
       entity
       |> Map.put(a, v)

@@ -6,10 +6,10 @@ defmodule MemoryTransactorTest do
     %{pid: pid}
   end
 
-  test "it increase transaction id when datoms are provided" do
-    [%{transaction: transaction} | _] = MemoryTransactor.transact([%Baboon.Datom{}])
-    assert 0 == transaction.transaction
-    [%{transaction: transaction} | _] = MemoryTransactor.transact([%Baboon.Datom{}])
-    assert 1 == transaction.transaction
+  test "should it increase transaction seq when datoms are transacted" do
+    [%{transaction: %{seq: seq}} | _] = MemoryTransactor.transact([%Baboon.Datom{}])
+    assert 0 == seq
+    [%{transaction: %{seq: seq}} | _] = MemoryTransactor.transact([%Baboon.Datom{}])
+    assert 1 == seq
   end
 end

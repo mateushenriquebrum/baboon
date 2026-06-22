@@ -21,7 +21,7 @@ defmodule MemoryTransactor do
   def handle_call(%{transact: datoms}, _from, count) when datoms != [] do
     {:reply,
      datoms
-     |> Baboon.with_transaction(%Transacation{timestamp: DateTime.utc_now(), transaction: count}),
+     |> Baboon.with_transaction(%Transacation{timestamp: DateTime.utc_now(), seq: count}),
      count + 1}
   end
 
