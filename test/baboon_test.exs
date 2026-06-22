@@ -14,7 +14,7 @@ defmodule BaboonTest do
           ) do
       assert datoms
              |> Baboon.with_transaction(transaction)
-             |> Enum.all?(fn %{transaction: tx} -> tx == transaction end)
+             |> Enum.all?(&(&1.transaction == transaction))
     end
   end
 
@@ -26,8 +26,8 @@ defmodule BaboonTest do
       object = datoms |> Baboon.datoms_to_entity()
 
       datoms
-      |> Enum.sort_by(fn %{transaction: %{seq: tx}} -> tx end)
-      |> Enum.reduce(%{}, fn %{attribute: key} = datom, acc -> Map.put(acc, key, datom) end)
+      |> Enum.sort_by(& &1.transaction.seq)
+      |> Enum.reduce(%{}, &Map.put(&2, &1.attribute, &1))
       |> Map.values()
       |> Enum.all?(fn %{entity: entity, attribute: attribute, value: value} ->
         assert Map.get(object, attribute) == value
