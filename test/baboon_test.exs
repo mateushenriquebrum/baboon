@@ -23,19 +23,16 @@ defmodule BaboonTest do
             entity <- integer(1..100),
             datoms <- list_of(datom_generator(entity))
           ) do
-      ## datoms |> IO.inspect()
-      datoms |> Baboon.datoms_to_entity()
+      object = datoms |> Baboon.datoms_to_entity()
 
       datoms
       |> Enum.sort_by(fn %{transaction: %{seq: tx}} -> tx end)
       |> Enum.reduce(%{}, fn %{attribute: key} = datom, acc -> Map.put(acc, key, datom) end)
       |> Map.values()
-
-      ## |> IO.inspect()
-
-      # hidrate should return as many unique entities generated
-      # hidrate should return the last properties of a entity if promisse is assert
-      # hidrate should remove the property if last promisse is retreated
+      |> Enum.all?(fn %{entity: entity, attribute: attribute, value: value} ->
+        assert Map.get(object, attribute) == value
+        assert object.entity == entity
+      end)
     end
   end
 
@@ -50,7 +47,7 @@ defmodule BaboonTest do
               :person_updated_at,
               :person_member_since
             ]),
-          value <- string(:ascii),
+          value <- term(),
           promisse <- member_of([:assert, :retract]),
           transaction <- transaction_generator(1..5)
         ) do
@@ -70,8 +67,8 @@ defmodule BaboonTest do
         seq <- integer(size),
         unix_timestamp <- integer(100_000_000..10_000_000_000)
       ) do
-        timestamp = unix_timestamp |> DateTime.from_unix()
-        %Transacation{seq: seq, timestamp: timestamp}
+        {:ok, ts} = unix_timestamp |> DateTime.from_unix()
+        %Transacation{seq: seq, timestamp: ts}
       end
     )
   end
