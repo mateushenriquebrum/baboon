@@ -30,7 +30,8 @@ defmodule BaboonTest do
       |> Enum.sort_by(fn %{transaction: %{seq: tx}} -> tx end)
       |> Enum.reduce(%{}, fn %{attribute: key} = datom, acc -> Map.put(acc, key, datom) end)
       |> Map.values()
-      |> IO.inspect()
+
+      ## |> IO.inspect()
 
       # hidrate should return as many unique entities generated
       # hidrate should return the last properties of a entity if promisse is assert

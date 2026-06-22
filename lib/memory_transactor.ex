@@ -1,10 +1,13 @@
 defmodule MemoryTransactor do
   use GenServer
-  alias Baboon.Transacation
 
   # Client
-  def transact(datoms) do
-    GenServer.call(__MODULE__, %{transact: datoms})
+  def next_transaction_id() do
+    GenServer.call(__MODULE__, :next)
+  end
+
+  def current_transaction_id() do
+    GenServer.call(__MODULE__, :current)
   end
 
   def start_link(initial \\ 0) do
@@ -18,15 +21,12 @@ defmodule MemoryTransactor do
   end
 
   @impl true
-  def handle_call(%{transact: datoms}, _from, count) when datoms != [] do
-    {:reply,
-     datoms
-     |> Baboon.with_transaction(%Transacation{timestamp: DateTime.utc_now(), seq: count}),
-     count + 1}
+  def handle_call(:next, _from, count) do
+    {:reply, count, count + 1}
   end
 
   @impl true
-  def handle_call(%{transact: datoms}, _from, count) when datoms == [] do
-    {:reply, datoms, count}
+  def handle_call(:current, _from, count) do
+    {:reply, count, count}
   end
 end
