@@ -6,7 +6,7 @@ defmodule BaboonTest do
 
   doctest Baboon
 
-  property "should apply transaction for every datom" do
+  property "should apply transaction for every fact" do
     check all(
             entity <- integer(1..100),
             datoms <- list_of(datom_generator(entity)),
@@ -34,6 +34,29 @@ defmodule BaboonTest do
         assert object.entity == entity
       end)
     end
+  end
+
+  describe "should compute eavt index for live query" do
+    property "for empty datoms" do
+      assert Baboon.make_eavt_index([]) == []
+    end
+
+    property "for single entity datoms then b-tree node size should be 1" do
+      check all(
+              size <- integer(1..100),
+              datoms <- list_of(datom_generator(999), length: size)
+            ) do
+        %{node: node} = Baboon.make_eavt_index(datoms, size: size)
+        assert length(node) == 1
+      end
+    end
+
+    # high(datom(node_size * k)) == k
+    # high(datom(node_size/n * k)) == k
+    # <eavt(a<n>)> = <eavt(b<n>)>
+    # for all node its left child node < parents
+    # for all node its right child node > parents
+    # eavt(a + b) = eavt (b + a)
   end
 
   defp datom_generator(entity) do

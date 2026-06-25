@@ -4,7 +4,15 @@ defmodule Baboon do
   end
 
   defmodule Datom do
-    defstruct [:entity, :attribute, :value, :transaction, :promisse]
+    defstruct [:entity, :attribute, :value, :promisse, transaction: %Transacation{}]
+  end
+
+  defmodule Live do
+    defstruct [:eavt]
+  end
+
+  defmodule Database do
+    defstruct live: %Live{}
   end
 
   def with_transaction(datoms, transaction),
@@ -18,5 +26,13 @@ defmodule Baboon do
       |> Map.put(a, v)
       |> Map.put(:entity, e)
     end)
+  end
+
+  def make_eavt_index(datoms) when datoms == [], do: []
+
+  def make_eavt_index(datoms, opts \\ [size: 1]) do
+    # List.duplicate(0, opts |> Keyword.get(:size))
+    entities = datoms |> Enum.map(& &1.entity) |> Enum.uniq()
+    %{node: entities}
   end
 end
